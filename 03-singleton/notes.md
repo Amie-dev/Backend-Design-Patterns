@@ -4,6 +4,7 @@
 **Stack used in examples:** TypeScript · Node.js · Express
 
 > 📚 **Deep dive:** [chapter-wise notes](notes/README.md) — five chapters on scope, composition roots, infrastructure clients, testing, and shutdown.
+> ▶️ **Runnable demo:** [code/README.md](code/README.md) — an Express API with a bounded pool, TTL cache, request scope, metrics, and graceful shutdown.
 
 ---
 

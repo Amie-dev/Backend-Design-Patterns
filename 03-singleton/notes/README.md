@@ -51,8 +51,11 @@ folder; there are three boundaries that make the lifetime explicit:
 Everything else — routes, controllers, services, repositories — receives its
 dependencies and stays ignorant of how many instances exist.
 
-The pattern's code folder is reserved for a future runnable demo. The trees below
-are the contract for where each file belongs.
+The [`../code`](../code/README.md) folder contains a runnable demo implementing
+these chapters: an Express API with a bounded database pool, a TTL cache,
+`AsyncLocalStorage` request scope, metrics, readiness/liveness probes, and
+graceful shutdown. It needs no PostgreSQL or Redis; the pool and cache are
+in-memory adapters behind the same interfaces you would use in production.
 
 ### Feature-first (recommended once there are several domains)
 
