@@ -3,6 +3,8 @@
 **Category:** Data and object creation · Data access
 **Stack used in examples:** TypeScript · Node.js · Express · PostgreSQL · Prisma
 
+> 📚 **Deep dive:** [chapter-wise notes](notes/README.md) — ten chapters that expand every section below with code, tests, and production guidance.
+
 ---
 
 ## 1. What problem does it solve?
@@ -228,6 +230,7 @@ Unit tests of `OrderService` are now fast and deterministic. The real repository
 - ❌ A 1:1 mirror of every ORM method (`findMany`, `findFirst`, `count`, `aggregate`, …) — that is a wrapper, not an abstraction.
 - ❌ A place for business rules. `cancelPaidOrder()` belongs to the service/domain, not the repository.
 - ❌ A generic `BaseRepository<T>` with `any` everywhere — it pushes type safety and query knowledge back into services.
+
 ## 5. Production considerations
 
 | Concern | Guidance |
