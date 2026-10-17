@@ -61,7 +61,7 @@ scoped to the module instead of being global dumping grounds.
     │   │       ├── order.controller.ts        # HTTP in/out
     │   │       ├── order.service.ts           # business rules
     │   │       ├── order.repository.ts        # interface (port)
-    │   │       ├── order.prisma.repository.ts # adapter (Prisma)
+    │   │       ├── prisma-order.repository.ts # adapter (Prisma)
     │   │       ├── order.mapper.ts            # row <-> domain
     │   │       ├── order.dto.ts               # request/response schemas
     │   │       └── order.errors.ts            # domain errors
@@ -94,8 +94,10 @@ src/
 ├── controllers/orders.controller.ts
 ├── services/order.service.ts
 ├── repositories/
-│   ├── order.repository.ts           # interface
-│   └── prisma-order.repository.ts    # adapter
+│   ├── order.repository.ts            # interface
+│   ├── prisma-order.repository.ts     # adapter (PostgreSQL)
+│   └── in-memory-order.repository.ts  # no-DB adapter, also a test fake
+├── models/order.model.ts              # entity + status union
 ├── mappers/order.mapper.ts
 ├── dtos/order.dto.ts
 ├── middlewares/
@@ -117,19 +119,20 @@ folder instead of five. Layer-first is easier to navigate while the app is small
 
 | Folder | Responsibility | May import |
 | --- | --- | --- |
-| `order.ts` (entity) | Aggregate/domain type, invariants that need no I/O | nothing |
+| `order.model.ts` / `order.ts` (entity) | Aggregate/domain type, invariants that need no I/O | nothing |
 | `*.routes.ts` | Map URL + method to a controller, attach middleware | controller, middleware |
 | `*.controller.ts` | Parse/validate HTTP input, call **one** service method, shape the response | service, DTO, mapper |
 | `*.service.ts` | Business rules, invariants, transaction boundary | repository interface, domain, errors |
 | `*.repository.ts` | Persistence contract in domain language (no SQL) | domain entities/errors only |
-| `*.prisma.repository.ts` | Queries, row mapping, driver-error translation | Prisma, mapper, repository interface |
+| `prisma-order.repository.ts` | Queries, row mapping, driver-error translation | Prisma, mapper, repository interface |
+| `in-memory-order.repository.ts` | No-DB adapter for `REPOSITORY=memory` and tests | domain entities, repository interface |
 | `*.mapper.ts` | Row ↔ domain persistence mapping | domain, Prisma types |
 | `*.dto.ts` | Zod schemas and inferred request/response types | zod |
 | `middlewares/` | Cross-cutting HTTP: auth, async errors, error mapping | express |
 | `errors/` | Domain error classes shared by service and HTTP | nothing |
 | `composition-root.ts` | Construct clients/adapters, wire interface → implementation | everything (the only place allowed to) |
 | `config/` | Environment parsing and typed config | zod/env libs |
-| `infrastructure/` | Database client, logger, external clients | vendor SDKs |
+| `db/`, `infrastructure/` | Database client, logger, external clients | vendor SDKs |
 | `tests/` | Mirrors the layers above; one folder per test level | src |
 
 
@@ -141,19 +144,24 @@ trees above:
 
 | Chapter snippet | Feature-first | Layer-first |
 | --- | --- | --- |
-| `domain/order.ts` | `modules/orders/order.ts` | `domain/order.ts` |
+| `domain/order.ts` | `modules/orders/order.ts` | `models/order.model.ts` |
 | `domain/order.repository.ts` | `modules/orders/order.repository.ts` | `repositories/order.repository.ts` |
 | `domain/errors.ts` | `modules/orders/order.errors.ts` | `errors/order.errors.ts` |
 | `application/order.service.ts` | `modules/orders/order.service.ts` | `services/order.service.ts` |
-| `infrastructure/prisma-order.repository.ts` | `modules/orders/order.prisma.repository.ts` | `repositories/prisma-order.repository.ts` |
+| `infrastructure/prisma-order.repository.ts` | `modules/orders/prisma-order.repository.ts` | `repositories/prisma-order.repository.ts` |
+| `tests/fakes/in-memory-order.repository.ts` | `tests/fakes/in-memory-order.repository.ts` | `repositories/in-memory-order.repository.ts` |
 | `infrastructure/order.mapper.ts` | `modules/orders/order.mapper.ts` | `mappers/order.mapper.ts` |
 | `http/orders.routes.ts` | `modules/orders/order.routes.ts` | `routes/orders.routes.ts` |
+| `http/orders.controller.ts` | `modules/orders/order.controller.ts` | `controllers/orders.controller.ts` |
 | `http/order-response.ts` | `modules/orders/order.dto.ts` | `dtos/order.dto.ts` |
 | `http/async-handler.ts` | `middlewares/async-handler.ts` | `middlewares/async-handler.ts` |
 | `http/error-handler.ts` | `middlewares/error-handler.ts` | `middlewares/error-handler.ts` |
+| `infrastructure/prisma.ts` | `infrastructure/prisma.ts` | `db/prisma.ts` |
 | `composition-root.ts` | `src/composition-root.ts` | `src/composition-root.ts` |
 | `server.ts` | `src/server.ts` | `src/server.ts` |
-| `tests/fakes/...` | `tests/fakes/...` | `tests/fakes/...` |
+
+The layer-first column is what [`../code`](../code/README.md) uses. The in-memory
+adapter is not test-only in that demo: `REPOSITORY=memory` boots the API with it.
 
 ### Dependency rule
 
@@ -162,14 +170,15 @@ flowchart LR
     R["*.routes.ts"] --> C["*.controller.ts"]
     C --> S["*.service.ts"]
     S --> I["*.repository.ts<br/>(interface)"]
-    I -.-> P["*.prisma.repository.ts"]
+    I -.-> P["prisma-order.repository.ts"]
+    I -.-> M["in-memory-order.repository.ts"]
     P --> DB[("PostgreSQL")]
 ```
 
 - Routes never import Prisma or a concrete repository.
 - Controllers never import Prisma; they call a service and map the result.
 - Services depend on the **interface**, never on the adapter.
-- The interface file imports domain types only — no Prisma, Express, or `pg`.
+- The interface file imports domain models/errors only — no Prisma, Express, or `pg`.
 - The adapter is the only file allowed to contain queries and `PrismaClient`.
 - `composition-root.ts` is the only place that constructs concrete classes.
 - A module owns one aggregate; do not add `order-item.repository.ts` unless
@@ -183,8 +192,8 @@ flowchart LR
 | Controller | `<resource>.controller.ts` | `order.controller.ts` |
 | Service | `<resource>.service.ts` | `order.service.ts` |
 | Interface | `<resource>.repository.ts` | `order.repository.ts` |
-| Adapter | `<resource>.<tech>.repository.ts` | `order.prisma.repository.ts` |
-| Fake | `<resource>.in-memory.repository.ts` | `order.in-memory.repository.ts` |
+| Adapter | `<tech>-<resource>.repository.ts` | `prisma-order.repository.ts` |
+| Fake | `in-memory-<resource>.repository.ts` | `in-memory-order.repository.ts` |
 | Mapper | `<resource>.mapper.ts` | `order.mapper.ts` |
 | DTO | `<resource>.dto.ts` | `order.dto.ts` |
 | Errors | `<resource>.errors.ts` | `order.errors.ts` |
@@ -198,8 +207,8 @@ module folder flat until it exceeds roughly ten files; then split by use case
 - IDs look like `ord_123`; money is shown as `number` for brevity, but store
   integer minor units (cents) in real systems.
 - The [`../code`](../code) folder contains a runnable demo implementing these
-  chapters: an Express API with in-memory and Prisma adapters (see
-  [`../code/README.md`](../code/README.md)).
+  chapters: an Express API with in-memory and Prisma adapters, laid out with the
+  layer-first folder names above (see [`../code/README.md`](../code/README.md)).
 - Every diagram is Mermaid and renders on GitHub, GitLab, and VS Code.
 - Each chapter ends with an exercise and links to the next one.
 

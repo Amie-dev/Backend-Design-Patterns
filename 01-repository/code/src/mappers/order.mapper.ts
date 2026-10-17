@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import type { Order } from "../domain/order";
+import type { Order } from "../models/order.model";
 
 export const orderSelect = {
   id: true,

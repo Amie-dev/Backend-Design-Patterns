@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { OrderService } from "../../src/application/order.service";
-import { OrderNotFoundError, OrderStateError } from "../../src/domain/errors";
-import { InMemoryOrderRepository } from "../../src/infrastructure/in-memory-order.repository";
+import { OrderService } from "../../src/services/order.service";
+import { OrderNotFoundError, OrderStateError } from "../../src/errors/order.errors";
+import { InMemoryOrderRepository } from "../../src/repositories/in-memory-order.repository";
 import { anOrder } from "../builders/order.builder";
 
 function makeService(): {

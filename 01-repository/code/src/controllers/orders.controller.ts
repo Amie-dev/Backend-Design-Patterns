@@ -1,11 +1,11 @@
 import type { RequestHandler } from "express";
-import type { OrderService } from "../application/order.service";
-import { asyncHandler } from "./async-handler";
+import type { OrderService } from "../services/order.service";
+import { asyncHandler } from "../middlewares/async-handler";
 import {
   createOrderSchema,
   listOrdersQuerySchema,
   toOrderResponse,
-} from "./order.dto";
+} from "../dtos/order.dto";
 
 /**
  * Controllers translate HTTP <-> application calls. No persistence knowledge.

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import type { OrdersController } from "./orders.controller";
+import type { OrdersController } from "../controllers/orders.controller";
 
 export function createOrdersRouter(controller: OrdersController): Router {
   const router = Router();

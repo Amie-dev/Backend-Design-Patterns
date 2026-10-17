@@ -1,9 +1,9 @@
-import type { Order } from "../domain/order";
+import type { Order } from "../models/order.model";
 import type {
   OrderRepository,
   Page,
   PageRequest,
-} from "../domain/order.repository";
+} from "./order.repository";
 
 /**
  * In-memory adapter used by `REPOSITORY=memory`, unit tests, and the contract

@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { afterAll, beforeAll, describe } from "vitest";
-import { PrismaOrderRepository } from "../../src/infrastructure/prisma-order.repository";
+import { PrismaOrderRepository } from "../../src/repositories/prisma-order.repository";
 import { orderRepositoryContract } from "../contract/order.repository.contract";
 
 const testUrl = process.env.TEST_DATABASE_URL;

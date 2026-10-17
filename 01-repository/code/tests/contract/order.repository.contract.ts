@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import type { OrderRepository } from "../../src/domain/order.repository";
+import type { OrderRepository } from "../../src/repositories/order.repository";
 import { anOrder } from "../builders/order.builder";
 
 type Harness = {

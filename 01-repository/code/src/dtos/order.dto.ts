@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Order } from "../domain/order";
+import type { Order } from "../models/order.model";
 
 export const createOrderSchema = z.object({
   userId: z.string().min(1),

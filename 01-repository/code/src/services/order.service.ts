@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { OrderNotFoundError, OrderStateError } from "../domain/errors";
-import type { Order } from "../domain/order";
-import type { OrderRepository, Page, PageRequest } from "../domain/order.repository";
+import { OrderNotFoundError, OrderStateError } from "../errors/order.errors";
+import type { Order } from "../models/order.model";
+import type { OrderRepository, Page, PageRequest } from "../repositories/order.repository";
 
 export type CreateOrderInput = {
   userId: string;

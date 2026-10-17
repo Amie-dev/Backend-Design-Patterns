@@ -1,4 +1,4 @@
-import type { Order } from "./order";
+import type { Order } from "../models/order.model";
 
 export type PageRequest = {
   limit: number;

@@ -1,4 +1,4 @@
-import type { Order } from "../../src/domain/order";
+import type { Order } from "../../src/models/order.model";
 
 let sequence = 0;
 

@@ -1,9 +1,9 @@
-import { OrderService } from "./application/order.service";
+import { OrderService } from "./services/order.service";
 import { loadConfig, type Config } from "./config/env";
-import type { Order } from "./domain/order";
-import { InMemoryOrderRepository } from "./infrastructure/in-memory-order.repository";
-import { createPrismaClient } from "./infrastructure/prisma";
-import { PrismaOrderRepository } from "./infrastructure/prisma-order.repository";
+import type { Order } from "./models/order.model";
+import { InMemoryOrderRepository } from "./repositories/in-memory-order.repository";
+import { createPrismaClient } from "./db/prisma";
+import { PrismaOrderRepository } from "./repositories/prisma-order.repository";
 
 export type Container = {
   config: Config;

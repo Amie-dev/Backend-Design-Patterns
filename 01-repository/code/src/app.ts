@@ -1,8 +1,8 @@
 import express, { type Express } from "express";
-import type { OrderService } from "./application/order.service";
-import { errorHandler } from "./http/error-handler";
-import { OrdersController } from "./http/orders.controller";
-import { createOrdersRouter } from "./http/orders.routes";
+import type { OrderService } from "./services/order.service";
+import { errorHandler } from "./middlewares/error-handler";
+import { OrdersController } from "./controllers/orders.controller";
+import { createOrdersRouter } from "./routes/orders.routes";
 
 /**
  * Build the Express app from a service instance.

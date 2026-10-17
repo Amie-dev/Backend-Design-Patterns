@@ -1,12 +1,12 @@
 import { Prisma, PrismaClient } from "@prisma/client";
-import { OrderNotFoundError, RepositoryError } from "../domain/errors";
-import type { Order } from "../domain/order";
+import { OrderNotFoundError, RepositoryError } from "../errors/order.errors";
+import type { Order } from "../models/order.model";
 import type {
   OrderRepository,
   Page,
   PageRequest,
-} from "../domain/order.repository";
-import { orderSelect, toDomain, toPersistence } from "./order.mapper";
+} from "./order.repository";
+import { orderSelect, toDomain, toPersistence } from "../mappers/order.mapper";
 
 type OrderDb = PrismaClient | Prisma.TransactionClient;
 

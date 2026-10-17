@@ -73,44 +73,59 @@ transition, `500` persistence failure.
 
 ## Folder structure
 
-This demo uses the **layer-first** variant from the notes (a single module does
-not benefit from a `modules/` wrapper). The chapter snippets map 1:1:
+One folder per responsibility, named after the layer it holds. This is the
+**layer-first** tree documented in
+[`../notes/README.md`](../notes/README.md), so every chapter snippet has an
+obvious home:
 
 ```text
 src/
-├── domain/                       # no Prisma, no Express
-│   ├── order.ts                  # entity + status union
-│   ├── order.repository.ts       # the interface (port)
-│   └── errors.ts                 # domain errors
-├── application/
-│   └── order.service.ts          # business rules only
-├── infrastructure/
-│   ├── prisma.ts                 # one PrismaClient
-│   ├── order.mapper.ts           # row <-> domain
-│   ├── prisma-order.repository.ts
-│   └── in-memory-order.repository.ts
-├── http/
-│   ├── orders.routes.ts          # URL -> controller
-│   ├── orders.controller.ts      # HTTP in/out
-│   ├── order.dto.ts              # zod schemas + response mapper
+├── routes/orders.routes.ts           # URL + method -> controller
+├── controllers/orders.controller.ts  # HTTP in/out, no business rules
+├── services/order.service.ts         # business rules only
+├── repositories/
+│   ├── order.repository.ts           # the interface (port)
+│   ├── prisma-order.repository.ts    # PostgreSQL adapter
+│   └── in-memory-order.repository.ts # no-DB adapter, also a test fake
+├── models/order.model.ts             # entity + status union
+├── dtos/order.dto.ts                 # zod schemas + response mapper
+├── mappers/order.mapper.ts           # Prisma row <-> domain
+├── middlewares/
 │   ├── async-handler.ts
-│   └── error-handler.ts          # domain errors -> status codes
+│   └── error-handler.ts              # domain errors -> status codes
+├── errors/order.errors.ts            # domain errors
+├── db/prisma.ts                      # one PrismaClient
 ├── config/env.ts
-├── composition-root.ts           # chooses memory or Prisma
-├── app.ts                        # createApp(service)
-└── server.ts                     # listen + graceful shutdown
+├── composition-root.ts               # chooses memory or Prisma
+├── app.ts                            # createApp(service)
+└── server.ts                         # listen + graceful shutdown
 ```
 
-Dependency direction: `http → application → domain` and
-`infrastructure → domain`. Nothing in `domain` imports outward.
+Dependency direction:
+
+```text
+routes -> controllers -> services -> repositories (interface) <- adapters
+                              |                |
+                          models/errors     db, mappers
+```
+
+- `models/` and `errors/` import nothing from the rest of the app.
+- `services/` never import Prisma, Express, or a concrete adapter.
+- `repositories/` is the only folder allowed to contain queries.
+- `composition-root.ts` is the only place that constructs a concrete repository.
+
+The chapters use shorter `domain/`, `application/`, `infrastructure/`, `http/`
+paths to keep snippets compact; the
+[mapping table](../notes/README.md#how-the-chapter-snippets-map) translates
+between the two.
 
 ## Where each idea is explained
 
 | File | Chapter |
 | --- | --- |
-| `domain/order.repository.ts` | [3 — interface design](../notes/03-domain-model-and-interface.md) |
-| `infrastructure/prisma-order.repository.ts` | [4 — Prisma adapter](../notes/04-prisma-adapter.md) |
-| `application/order.service.ts`, `http/` | [5 — service and Express wiring](../notes/05-service-and-express-wiring.md) |
+| `repositories/order.repository.ts` | [3 — interface design](../notes/03-domain-model-and-interface.md) |
+| `repositories/prisma-order.repository.ts` | [4 — Prisma adapter](../notes/04-prisma-adapter.md) |
+| `services/order.service.ts`, `controllers/`, `routes/`, `middlewares/` | [5 — service and Express wiring](../notes/05-service-and-express-wiring.md) |
 | `tests/` | [6 — testing](../notes/06-testing.md) |
 | `composition-root.ts` | [2 — boundaries](../notes/02-concept-and-boundaries.md) |
 
