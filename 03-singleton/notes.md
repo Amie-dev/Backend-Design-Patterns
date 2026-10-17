@@ -3,6 +3,8 @@
 **Category:** Shared instance lifecycle
 **Stack used in examples:** TypeScript · Node.js · Express
 
+> 📚 **Deep dive:** [chapter-wise notes](notes/README.md) — five chapters on scope, composition roots, infrastructure clients, testing, and shutdown.
+
 ---
 
 ## 1. What problem does it solve?
