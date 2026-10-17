@@ -3,6 +3,8 @@
 **Category:** Object creation
 **Stack used in examples:** TypeScript · Node.js · Express · Stripe · Razorpay
 
+> 📚 **Deep dive:** [chapter-wise notes](notes/README.md) — five chapters that expand every section below with code, tests, and production guidance.
+
 ---
 
 ## 1. What problem does it solve?
