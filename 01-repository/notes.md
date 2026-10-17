@@ -4,6 +4,8 @@
 **Stack used in examples:** TypeScript · Node.js · Express · PostgreSQL · Prisma
 
 > 📚 **Deep dive:** [chapter-wise notes](notes/README.md) — ten chapters that expand every section below with code, tests, and production guidance.
+>
+> 🧪 **Runnable demo:** [`code/`](code/README.md) — Express + TypeScript API with in-memory and Prisma adapters.
 
 ---
 

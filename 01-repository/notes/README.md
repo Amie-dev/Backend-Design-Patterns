@@ -197,8 +197,9 @@ module folder flat until it exceeds roughly ten files; then split by use case
 
 - IDs look like `ord_123`; money is shown as `number` for brevity, but store
   integer minor units (cents) in real systems.
-- Code is copy-ready, not a complete scaffold — the [`../code`](../code) folder
-  is reserved for a runnable project.
+- The [`../code`](../code) folder contains a runnable demo implementing these
+  chapters: an Express API with in-memory and Prisma adapters (see
+  [`../code/README.md`](../code/README.md)).
 - Every diagram is Mermaid and renders on GitHub, GitLab, and VS Code.
 - Each chapter ends with an exercise and links to the next one.
 
