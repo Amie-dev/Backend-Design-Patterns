@@ -40,10 +40,9 @@ copy-ready TypeScript/Express code, tests, and production guidance.
 Two layouts are shown. Both keep the same rule: **creation code is separate from
 behaviour code**. Only the physical nesting differs.
 
-The `code/` folder in this pattern is reserved for a runnable demo. Until it
-lands, treat the trees below as the contract for where each file belongs; the
-reference implementation of the same layering is
-[`../../01-repository/code`](../../01-repository/code/README.md).
+The [`../code`](../code/README.md) folder contains the runnable demo implementing
+these chapters: an Express API with a provider registry, sandbox/Stripe/Razorpay
+adapters, retries, refunds, metrics, and 89 tests that need no credentials.
 
 ### Feature-first (recommended once there are several domains)
 
@@ -53,7 +52,7 @@ reference implementation of the same layering is
 ├── notes/
 │   ├── README.md
 │   └── 01-...05-....md
-└── code/            # reserved for the runnable demo
+└── code/            # runnable demo (see ../code/README.md)
     ├── prisma/
     │   └── schema.prisma
     ├── src/

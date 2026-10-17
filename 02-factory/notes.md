@@ -4,6 +4,8 @@
 **Stack used in examples:** TypeScript · Node.js · Express · Stripe · Razorpay
 
 > 📚 **Deep dive:** [chapter-wise notes](notes/README.md) — five chapters that expand every section below with code, tests, and production guidance.
+>
+> 🧪 **Runnable demo:** [`code/`](code/README.md) — Express + TypeScript API with sandbox, Stripe, and Razorpay providers, retries, refunds, and metrics.
 
 ---
 
