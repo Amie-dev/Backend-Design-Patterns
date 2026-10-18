@@ -49,6 +49,11 @@ The layout therefore has two rules:
 2. **Selection lives in a service or registry, never in a controller.** The
    controller may translate HTTP; it may not decide which rule applies.
 
+The [`../code`](../code/README.md) folder contains a runnable demo implementing
+these chapters: an Express API with a strict quote DTO, a catalog and promotion
+port, four strategies, an exhaustive registry, deterministic rollout, and 61
+tests that need no database or credentials.
+
 The chapters use the layer-first layout below. A feature-first variant is shown
 after it; both keep the same dependency direction.
 

@@ -73,8 +73,9 @@ and the exact behaviour to observe:
 | [Repository](01-repository/code/README.md) | `3000` | In-memory by default; PostgreSQL via Docker | `npm run dev` | `REPOSITORY=postgres npm run dev` after `npm run db:up && npm run db:push && npm run db:seed` |
 | [Factory](02-factory/code/README.md) | `3200` | Sandbox provider; Stripe/Razorpay optional | `npm run dev` | `PAYMENTS_ENABLED=stripe` needs keys; contract tests run against all |
 | [Singleton](03-singleton/code/README.md) | `3000` | None | `cp .env.example .env && npm run dev` | Bounded pool, TTL cache, request scope, graceful shutdown |
+| [Strategy](04-strategy/code/README.md) | `3000` | In-memory catalog + promotions | `cp .env.example .env && npm run dev` | Four rules, registry, deterministic rollout, 61 tests |
 
-> 01 and 03 both default to port `3000`; run them one at a time or set `PORT`.
+> 01, 03, and 04 default to port `3000`; run them one at a time or set `PORT`.
 
 ## The patterns at a glance
 
@@ -99,7 +100,7 @@ and the exact behaviour to observe:
 | 01 Repository | ✅ | 10 chapters | ✅ in-memory + Prisma |
 | 02 Factory | ✅ | 5 chapters | ✅ sandbox + Stripe + Razorpay |
 | 03 Singleton | ✅ | 5 chapters | ✅ pool + cache + shutdown |
-| 04 Strategy | ✅ | 5 chapters | — |
+| 04 Strategy | ✅ | 5 chapters | ✅ four rules + registry |
 | 05 Observer | ✅ | — | — |
 | 06 Builder | ✅ | — | — |
 | 07 Adapter | ✅ | — | — |
@@ -208,7 +209,7 @@ enforce the import boundaries mechanically.
 ├── 04-strategy/
 │   ├── notes.md
 │   ├── notes/                    # 5 chapters
-│   └── code/                     # reserved for a demo
+│   └── code/                     # rules, registry, checkout demo
 ├── 05-observer/ … 10-circuit-breaker/
 │   ├── notes.md                  # complete reference
 │   ├── notes/                    # reserved for chapters
@@ -255,8 +256,7 @@ blueprint):
 
 ## Status and roadmap
 
-- **01–04** have a complete reference and chapter notes; **01–03** also ship a
-  tested demo.
+- **01–04** ship a complete reference, chapter notes, and a tested demo.
 - **05–10** have complete `notes.md` references; chapter notes and runnable
   demos are the next additions.
 - **11** is a complete written blueprint; a starter `code/` scaffold is planned

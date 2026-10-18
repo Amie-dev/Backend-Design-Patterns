@@ -5,6 +5,10 @@
 
 > 📚 **Deep dive:** [chapter-wise notes](notes/README.md) — five chapters that
 > expand every section below with code, tests, and production guidance.
+>
+> 🧪 **Runnable demo:** [`code/`](code/README.md) — Express + TypeScript API with
+> four strategies, a registry, a strict quote DTO, deterministic rollout, and 61
+> tests that need no database or credentials.
 
 ---
 
