@@ -5,6 +5,71 @@
 
 ---
 
+## Theory — why this pattern exists
+
+Observer is a **behavioural** pattern that defines a one-to-many dependency:
+*"when one object changes state, all its dependents are notified and updated
+automatically"* (GoF). In a backend system the "object" is usually a domain
+event and the dependents are handlers.
+
+The deeper principle is **inversion of control** — often called the Hollywood
+principle: *don't call us, we'll call you*. The order service does not know who
+cares about `order.placed`; it publishes a fact and returns. Subscribers register
+interest. This decouples the publisher from the number, identity, and
+implementation of its consumers.
+
+Two kinds of decoupling follow:
+
+- **In space** — the publisher has no compile-time dependency on subscribers.
+- **In time** — with a durable broker, publisher and subscriber do not need to
+  run simultaneously.
+
+That second form is where the hard theory lives. Once delivery is asynchronous,
+you inherit **eventual consistency**, **at-least-once delivery**, duplicate
+handling, ordering questions, and schema evolution. The in-process event bus in
+section 3 is the teaching shape; production systems add an outbox and idempotent
+consumers.
+
+## Why you need it
+
+You need observer when one business fact triggers several independent reactions:
+
+- Placing an order must update inventory, send email, award points, record
+  analytics, and notify the warehouse.
+- The synchronous version makes checkout latency the sum of every downstream
+  call, so a slow email provider delays orders.
+- One downstream exception aborts the rest, leaving inconsistent state.
+- Every new reaction requires editing the order service and redeploying it.
+- Different teams own different reactions and cannot ship independently.
+
+Without the pattern, the core flow becomes a fragile orchestration script that
+grows with every feature and fails as a unit.
+
+## Benefits
+
+| Benefit | What it gives you |
+| --- | --- |
+| **Loose coupling** | The publisher knows only the event name and payload contract. |
+| **Extensibility** | New reactions are new subscribers; the publisher does not change. |
+| **Latency isolation** | Slow work moves off the request path when async is acceptable. |
+| **Failure isolation** | A failing subscriber does not abort the publisher or its siblings. |
+| **Fan-out** | One event serves any number of consumers, including future services. |
+| **Replay and audit** | A durable log lets you rebuild projections or investigate history. |
+| **Team autonomy** | Consumers can be owned, deployed, and scaled independently. |
+
+The costs are eventual consistency, duplicate delivery, ordering and debugging
+complexity, and real operational work (DLQs, lag monitoring, contracts). An event
+bus is not "free decoupling"; it trades a compile-time dependency for a runtime
+contract.
+
+## When this pattern applies
+
+Use it when one event has multiple independent consumers, when work can be
+asynchronous (email, analytics, indexing, webhooks), or when you need decoupling
+across services. If the caller needs the result synchronously, a direct call is
+simpler. If an event must never be lost, pair the pattern with a transactional
+outbox and idempotent consumers. Section 7 has the full decision list.
+
 ## 1. What problem does it solve?
 
 When a customer places an order, several things should happen:

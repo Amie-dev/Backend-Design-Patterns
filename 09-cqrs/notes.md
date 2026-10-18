@@ -5,6 +5,77 @@
 
 ---
 
+## Theory — why this pattern exists
+
+CQRS applies **Bertrand Meyer's Command-Query Separation (CQS)** at architectural
+scale. CQS says a method should either change state or return data — not both.
+CQRS says the same for a system: a **command** expresses intent, enforces
+invariants, and writes; a **query** returns a projection and has no side effects.
+
+The economic argument is **read/write asymmetry**. Reads and writes differ in:
+
+- **Shape** — writes need normalized aggregates; reads need screen-specific joins
+  and aggregations.
+- **Volume** — read traffic is often 10–100× write traffic.
+- **Scaling** — replicas and caches help reads; transactions and locks constrain writes.
+- **Consistency** — writes need strong guarantees; reads can often be stale.
+
+Trying to satisfy both with one model produces a compromise that serves neither.
+CQRS gives each side its own model and handler.
+
+The theory has **levels**, and this is where most teams go wrong:
+
+1. **Separate handlers, one database** — delivers most maintainability benefits.
+2. **Separate read model / replica** — optimizes read performance.
+3. **Separate store with projections** — introduces eventual consistency and
+   operational cost.
+
+CQRS does **not** require event sourcing, a broker, or two databases. Those are
+independent choices. Eventual consistency is a deliberate trade, not a side effect
+you discover in production.
+
+## Why you need it
+
+You need CQRS when one model is failing at both jobs:
+
+- Reporting and dashboard queries slow down checkout because they hit the same
+  tables and compete for the same resources.
+- Write logic is buried under flexible filters, sorting, and pagination concerns.
+- Different screens need different projections of the same data, so handlers
+  accumulate `include` options and DTO mapping.
+- Read traffic dominates and cannot be scaled independently.
+- Complex invariants deserve a dedicated home instead of living in a generic
+  service used by both reads and writes.
+
+Without separation, every read optimization risks write correctness, and every
+write rule risks breaking a screen.
+
+## Benefits
+
+| Benefit | What it gives you |
+| --- | --- |
+| **Purpose-built models** | Normalized writes, denormalized reads, each optimized for its job. |
+| **Independent scaling** | Read replicas and caches without complicating the write path. |
+| **Simpler handlers** | Each handler has one reason to change. |
+| **Faster reads** | One projection query instead of joins and post-processing. |
+| **Safer writes** | Invariants and transaction boundaries are explicit. |
+| **Clear security boundary** | Authorization and tenancy are enforced per side. |
+| **Intent-revealing API** | `CreateOrder` communicates more than a generic update call. |
+| **Team ownership** | Read and write sides can evolve in parallel. |
+
+The costs are duplication, eventual consistency and read-after-write design,
+projection operations and monitoring at Level 3, and a real risk of
+over-engineering a simple CRUD application.
+
+## When this pattern applies
+
+Use it when read and write workloads differ materially in shape or volume, when
+reporting hurts transactional performance, when multiple screens need different
+projections, or when write invariants are complex. Avoid it for straightforward
+CRUD, small teams, and cases where async projections would break consistency
+requirements. Start at Level 1 and escalate only when measurement justifies it.
+Section 7 has the full decision list.
+
 ## 1. What problem does it solve?
 
 Most CRUD applications use one model for reading and changing data. That works until read and write needs diverge:

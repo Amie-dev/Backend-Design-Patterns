@@ -5,6 +5,72 @@
 
 ---
 
+## Theory — why this pattern exists
+
+Decorator is a **structural** pattern: *"Attach additional responsibilities to an
+object dynamically. Decorators provide a flexible alternative to subclassing for
+extending functionality"* (GoF).
+
+The theory is **composition over inheritance**. If a service needs caching,
+logging, metrics, authorization, and auditing, subclassing produces one class per
+combination. Wrapping produces one small class per concern, combined at
+construction time. Each wrapper implements the same interface, holds the next
+layer (`inner`), and adds behaviour before or after delegating.
+
+This is a direct application of:
+
+- **Open/closed principle** — extend behaviour without editing the decorated class.
+- **Single responsibility** — the core fetches data; each wrapper owns one concern.
+- **Uniform interface** — callers cannot tell how many wrappers are present.
+
+The crucial theoretical detail is that **order defines semantics**. Caching before
+authorization can serve data the caller may not see; metrics outside logging
+measures different latency than metrics inside. A decorator stack is therefore a
+composition with meaning, not a bag of middleware.
+
+Decorator is related to, but distinct from, **proxy** (controls access), **HTTP
+middleware** (request pipeline), and **framework interceptors** (handler
+execution). Object decorators work across HTTP, jobs, and CLI, which is why they
+are the right tool when behaviour must apply outside the web layer.
+
+## Why you need it
+
+You need decorators when one method keeps accumulating concerns:
+
+- `getProduct()` contains logging, timing, caching, authorization, and database
+  access in a single body.
+- Every new cross-cutting requirement edits the same function and risks the core.
+- The core service cannot be tested without Redis, a logger, and a metrics client.
+- The same caching or audit behaviour is needed in background jobs, not just HTTP.
+- Subclassing for each combination has produced a class explosion.
+
+Without the pattern, the core becomes a maze of concerns, and the team stops
+trusting changes to it.
+
+## Benefits
+
+| Benefit | What it gives you |
+| --- | --- |
+| **Composability** | Behaviours are combined per environment or per route. |
+| **Focused core** | The business implementation stays small and readable. |
+| **Isolated testing** | Each wrapper is tested with a stub `inner`. |
+| **Runtime flexibility** | Caching or metrics can be enabled without editing the service. |
+| **Reuse** | The same wrappers serve HTTP, jobs, and CLI entry points. |
+| **No subclass explosion** | One wrapper per concern instead of one class per combination. |
+| **Localized policy** | Timeouts, retries, audit, and cache TTLs live in one place each. |
+
+The costs are indirection, harder stack traces, order sensitivity, and cache
+invalidation work. Three or four wrappers stay readable; ten become a debugging
+maze. Never use a decorator to paper over a badly designed core.
+
+## When this pattern applies
+
+Use it when behaviour is optional, composable, and cross-cutting — caching,
+logging, metrics, audit, authorization, timeouts — and when it must work outside
+the HTTP pipeline. If Express middleware already solves the problem cleanly, or
+the wrapper merely hides a single direct call, skip it. Section 7 has the full
+decision list.
+
 ## 1. What problem does it solve?
 
 A `ProductService` fetches product information. Over time the team wants:

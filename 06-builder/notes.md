@@ -5,6 +5,70 @@
 
 ---
 
+## Theory — why this pattern exists
+
+Builder is a **creational** pattern: *"Separate the construction of a complex
+object from its representation so that the same construction process can create
+different representations"* (GoF). In backend code its most common use is more
+specific: replace a **telescoping constructor** with a named, staged, validated
+construction sequence.
+
+The theory connects to several design ideas:
+
+- **Named intent over positional arguments.** `new Report("sales", "monthly",
+  true, false, 100, "csv")` is unreadable and silently breakable when two
+  arguments share a type.
+- **Centralized defaults and invariants.** "Unset" should mean one thing, and
+  cross-field rules should be checked before the object escapes.
+- **Immutability and illegal states.** `build()` returns a frozen value, so no
+  caller can mutate shared configuration after validation.
+- **Parse, don't validate.** Convert untrusted input into a well-typed object
+  once, at the boundary, instead of re-checking fields everywhere.
+
+Builder is often confused with factory. The distinction is stable: **factory
+chooses which type to create; builder configures one type step by step.** A
+step builder can even encode required fields in the type system, so `build()`
+does not exist until they are set.
+
+## Why you need it
+
+You need a builder when construction itself is the source of bugs:
+
+- A constructor takes many optional parameters, most of them booleans.
+- Call sites pass six positional arguments and reviewers cannot tell what they mean.
+- Invalid combinations (format plus options, min greater than max) reach the
+  database because nothing validates the whole object.
+- Defaults are duplicated across DTOs, services, and schema definitions.
+- Tests need readable fixtures instead of a wall of object literals.
+- Configuration is assembled in stages: parse request → apply policy → validate.
+
+Without it, construction knowledge spreads across call sites, defaults disagree,
+and invalid objects circulate until something fails far from the cause.
+
+## Benefits
+
+| Benefit | What it gives you |
+| --- | --- |
+| **Readable call sites** | Every option is named where it is set. |
+| **One source of defaults** | Defaults are defined once instead of per caller. |
+| **Whole-object validation** | Cross-field rules run in `build()`, before use. |
+| **Immutable result** | A frozen copy prevents accidental mutation after construction. |
+| **Staged construction** | Parsing, policy, and validation can happen in a deliberate order. |
+| **Test fixtures** | A test-data builder removes brittle literal duplication. |
+| **Compile-time guidance** | A step builder makes required fields impossible to skip. |
+
+The costs are boilerplate and another type to maintain. In TypeScript a typed
+object literal is often enough; a builder earns its place when construction has
+**rules**, not merely fields. Never share one mutable builder instance across
+requests.
+
+## When this pattern applies
+
+Use it when an object has many optional settings, when validation spans multiple
+fields, when construction happens in stages, or when you need reliable test
+fixtures. Avoid it for two or three stable fields where an object literal is
+clear. Section 6 has the full decision list.
+
 ## 1. What problem does it solve?
 
 Consider creating a report configuration with many optional properties:

@@ -9,6 +9,71 @@
 
 ---
 
+## Theory — why this pattern exists
+
+The repository pattern comes from domain-driven design and the ports-and-adapters
+(hexagonal) architecture. Its central theoretical claim is **persistence
+ignorance**: the domain model and the use cases must not know whether data lives
+in PostgreSQL, MongoDB, a file, or an in-memory map.
+
+Two principles do the work:
+
+- **Separation of concerns / single responsibility.** Deciding *what* data an
+  operation needs is a domain concern. Deciding *which SQL, index, join, or ORM
+  call* satisfies it is an infrastructure concern. When both live in one
+  function, every change touches the same code.
+- **Dependency inversion.** The domain defines the interface it needs (a *port*);
+  infrastructure implements it (an *adapter*). Source-code dependencies point
+  inward, so the database depends on the domain — not the other way round.
+
+A repository is therefore not "a class that wraps the ORM". It is a
+**collection-like abstraction over aggregate roots**: it accepts and returns
+domain objects, hides query construction, and marks a persistence boundary.
+
+The theory only pays off when the interface hides a real decision. Renaming
+`prisma.order.findMany` to `orderRepository.findAll` hides nothing and adds a
+layer for free.
+
+## Why you need it
+
+You need a repository when the missing boundary is already costing you:
+
+- The same query — with its tenant filter, soft-delete rule, and field
+  selection — is copy-pasted across several services, and one copy is wrong.
+- Business rules cannot be unit-tested without booting a real database.
+- A schema, ORM, or index change forces edits in controllers, services, and jobs.
+- Nobody can answer "where is order data written?" without a global search.
+- Test suites are slow and flaky because every test needs infrastructure.
+
+Without the boundary, persistence knowledge leaks into every layer. Coupling
+rises, feedback loops slow down, and each migration becomes a cross-cutting
+change instead of a local one.
+
+## Benefits
+
+| Benefit | What it gives you |
+| --- | --- |
+| **Testable domain** | An in-memory implementation runs use-case tests in milliseconds, with no database. |
+| **Storage independence** | Change ORM, add a read replica, or put a cache behind the same contract. |
+| **One place for query policy** | Tenancy scoping, soft deletes, and field projection are enforced once. |
+| **Domain vocabulary** | Services read `findActiveByCustomer()`, not a nest of `where` clauses. |
+| **Explicit transaction seam** | The unit of work becomes visible instead of hiding inside ORM calls. |
+| **Parallel work** | API and persistence work can proceed against the interface. |
+
+The cost is indirection: one more layer to read, plus the real risk of a
+`BaseRepository<T>` that leaks `any` and SQL back into the domain (see section 4).
+
+## When this pattern applies
+
+Introduce it when data access is non-trivial or repeated, when business logic
+must be tested without a database, and when storage, schema, or query policy is
+expected to change. Skip it for a small CRUD service where the ORM already
+provides a clean, single-purpose boundary. Section 6 has the full decision list.
+
+The numbered sections below build the implementation end to end: interface
+design, a Prisma adapter, Express wiring, testing, transactions, and production
+checks.
+
 ## 1. What problem does it solve?
 
 Without a repository, database queries spread across controllers, route handlers, and business services.

@@ -5,6 +5,68 @@
 
 ---
 
+## Theory — why this pattern exists
+
+Adapter is a **structural** pattern: *"Convert the interface of a class into
+another interface clients expect. Adapter lets classes work together that
+couldn't otherwise because of incompatible interfaces"* (GoF).
+
+In backend architecture the same idea appears under two stronger names:
+
+- **Ports and adapters (hexagonal architecture).** The application defines a port
+  in its own language; an adapter connects that port to a technology.
+- **Anti-corruption layer (domain-driven design).** The boundary protects the
+  domain model from foreign concepts, field names, statuses, and error shapes.
+
+The theory is **translation without leakage**. The adapter may know everything
+about the vendor; the domain must know nothing about the vendor. That keeps the
+domain vocabulary stable while the outside world changes. It also applies
+**dependency inversion**: the domain owns the interface, and the vendor SDK sits
+at the edge.
+
+An adapter translates. It does not decide policy. Discounts, authorization,
+retry strategy, and refund rules belong elsewhere — otherwise changing providers
+changes business behaviour.
+
+## Why you need it
+
+You need an adapter when a third party's contract does not match yours:
+
+- Provider A returns `payment_id` / `payment_status`; provider B returns
+  `id` / `status`. Without translation, that vocabulary spreads everywhere.
+- Vendor DTOs and enums leak into services, so a vendor field rename breaks
+  business logic.
+- Adding a second provider means duplicating conditionals in every caller.
+- Each vendor reports errors differently, so retry and support logic is ad hoc.
+- Tests need real SDK objects or recorded HTTP fixtures to exercise services.
+
+Without an adapter, the vendor's design becomes your design. Every external
+change becomes an internal migration, and provider lock-in grows silently.
+
+## Benefits
+
+| Benefit | What it gives you |
+| --- | --- |
+| **Stable internal contract** | One domain vocabulary regardless of provider quirks. |
+| **Provider independence** | Swap or add vendors behind the same interface. |
+| **Normalized statuses** | Every provider maps into the same state machine. |
+| **Normalized errors** | Callers decide on `retryable` without knowing the vendor. |
+| **Testability** | A fake adapter replaces the SDK in unit tests. |
+| **One home for quirks** | Timeouts, retries, auth, and field mapping live at the boundary. |
+| **Explicit capabilities** | Unsupported features are documented instead of silently failing. |
+
+The costs are mapping code to maintain, an extra layer, and the temptation to
+build a lowest-common-denominator interface that hides real provider differences.
+Unknown statuses must fail loudly, not be guessed.
+
+## When this pattern applies
+
+Use it when an external API differs from your internal contract, when more than
+one provider exists or is planned, when a vendor SDK is heavy or unstable, or
+when a legacy protocol must be isolated. Skip it when there is no meaningful
+mismatch — an adapter that only forwards calls adds indirection with no value.
+Section 7 has the full decision list.
+
 ## 1. What problem does it solve?
 
 Your application expects a consistent interface, but external providers implement different APIs.

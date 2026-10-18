@@ -9,6 +9,66 @@
 
 ---
 
+## Theory — why this pattern exists
+
+Factory is a **creational** pattern whose job is to answer one question — *which
+concrete object should be created?* — and to keep that answer in a single place.
+The caller depends on an abstraction (the product interface), never on a
+constructor, a vendor SDK, or an environment variable.
+
+The theory rests on three ideas:
+
+- **Separate use from construction.** Business code should express *what it needs
+  to do* (`charge`, `refund`), not *how a vendor client is configured*.
+- **Dependency inversion applied to creation.** High-level policy depends on the
+  interface; concrete classes are selected at the edge of the application.
+- **Open/closed principle at the registration seam.** Adding an implementation
+  should mean registering one entry, not editing every branch that constructs it.
+
+The classic GoF *factory method* lets a subclass decide the product. In backend
+services the more common shapes are a simple factory function, a registry keyed
+by name, or a composition-root factory wired at startup. All three follow the
+same theory: **creation policy is centralized; construction details are hidden.**
+
+## Why you need it
+
+You need a factory when construction has become someone's copy-pasted problem:
+
+- The same `if (provider === ...)` chain appears in several services and jobs.
+- Credentials, base URLs, timeouts, and retry settings differ between call sites.
+- Business services import vendor SDKs directly, so tests need real SDK objects.
+- Adding one provider requires edits in five files, and one path is forgotten.
+- Invalid or unauthorized provider names reach a constructor and fail late.
+
+Without a factory, creation knowledge scatters. Duplication makes configuration
+drift, drift becomes production incidents, and every new implementation is a
+cross-cutting change.
+
+## Benefits
+
+| Benefit | What it gives you |
+| --- | --- |
+| **Single change point** | A new provider is one registration, not a hunt through conditionals. |
+| **Consistent configuration** | Timeouts, retries, credentials, and instrumentation are applied uniformly. |
+| **Testability** | Tests inject a fake provider without touching a vendor SDK. |
+| **Explicit selection policy** | Currency, region, merchant, or feature-flag rules live in one testable place. |
+| **Fail fast** | Unknown or disallowed keys produce a typed error instead of a later crash. |
+| **Encapsulated setup** | Expensive clients are built once, not per request. |
+
+The cost is an extra abstraction and a new failure mode: the **god factory** that
+creates every object in the system becomes the switch statement it was meant to
+remove. Keep one factory per domain concept.
+
+## When this pattern applies
+
+Use it when object creation varies by environment, configuration, provider,
+tenant, or business rule; when construction involves non-trivial setup; or when
+you expect a second implementation. Avoid it when a direct `new Foo()` is clear,
+stable, and the only implementation. Section 6 has the full decision list.
+
+The numbered sections below cover the provider contract, concrete
+implementations, a registry, Express wiring, variants, and production concerns.
+
 ## 1. What problem does it solve?
 
 Suppose the application supports multiple payment providers and construction logic is duplicated:

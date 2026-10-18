@@ -8,6 +8,66 @@
 
 ---
 
+## Theory — why this pattern exists
+
+Singleton is a **creational** pattern with a narrow definition: ensure a type has
+exactly one instance **within a given scope** and provide controlled access to
+it. The original GoF description also promises global access, but that is the
+part modern backend design rejects. Global access is a convenience; **lifecycle
+control** is the actual value.
+
+The important theoretical move is to ask *what the scope is*:
+
+| Scope | Mechanism | Example |
+| --- | --- | --- |
+| **Process** | Module cache or composition root | Prisma pool, logger, config |
+| **Request** | `req`, `res.locals`, `AsyncLocalStorage` | Current user, trace id |
+| **Distributed** | Redis, database lock, etcd | Rate limit, leader election |
+
+A singleton is only correct for the first row. In Node.js the module cache gives
+you a per-process instance for free; the composition root makes ownership
+explicit. What the pattern must never become is a service locator or a home for
+mutable request state, because shared mutable state creates concurrency bugs and
+hidden coupling.
+
+## Why you need it
+
+You need singleton scope when a resource is expensive, bounded, or inherently
+process-wide:
+
+- A new database pool per request exhausts connections and destroys cache locality.
+- SDK clients (Stripe, S3, Redis) hold sockets and configuration that should be
+  built once.
+- Configuration and logger instances should be consistent across the process.
+- Shutdown must close pools and flush telemetry in a defined order.
+
+Without controlled scope you get connection storms, inconsistent configuration,
+duplicated instrumentation, and leaks during deploys.
+
+## Benefits
+
+| Benefit | What it gives you |
+| --- | --- |
+| **Resource reuse** | One pool or client serves all requests; connections stay bounded. |
+| **Predictable lifecycle** | Startup, health checks, and graceful shutdown have one owner. |
+| **Single configuration source** | Environment parsing and validation happen once, at boot. |
+| **Cache locality** | An in-process cache survives across requests and reduces latency. |
+| **Lower overhead** | Less allocation, fewer handshakes, less duplicated instrumentation. |
+| **Consistent instrumentation** | One logger/metrics registry means one format and one export path. |
+
+The costs are real: hidden dependencies, test-order coupling, implicit
+initialization order, and a misleading sense that "one instance" means "one
+across the cluster". It does not.
+
+## When this pattern applies
+
+Use it for **shared infrastructure that is stateless or immutable**: pools,
+clients, configuration, loggers, metrics registries. Do not use it for
+per-request or per-user state, and never for distributed coordination. Prefer
+constructor injection over `getInstance()`; construct once in the composition
+root. Section 6 has the full decision list, and the chapter notes cover scope,
+testing, and shutdown in depth.
+
 ## 1. What problem does it solve?
 
 Some objects are expensive to construct, or should have a consistent lifecycle inside one process:

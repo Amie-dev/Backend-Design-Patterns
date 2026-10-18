@@ -5,6 +5,73 @@
 
 ---
 
+## Theory — why this pattern exists
+
+Circuit breaker is a **resilience** pattern popularized by Michael Nygard in
+*Release It!*. The metaphor is electrical: when a fault is detected, the circuit
+opens to stop current, then periodically probes whether the fault has cleared.
+
+The theory is easiest to see through queueing behaviour. By **Little's Law**, the
+average number of in-flight requests is `L = λ × W` — arrival rate times time in
+system. If a dependency slows from 200 ms to 20 seconds while traffic stays
+constant, in-flight requests grow roughly 100×. Connection pools, sockets, memory,
+and the event loop fill up, and unrelated endpoints slow down. The failure is not
+the dependency's alone; it **cascades** into your service.
+
+Retries make it worse. Each retry increases `λ` against a dependency that is
+already struggling, turning a partial outage into a retry storm. A breaker breaks
+that feedback loop:
+
+- **Fail fast** instead of waiting for a timeout on every call.
+- **Shed load** so the dependency can recover.
+- **Probe carefully** with a limited number of half-open calls.
+- **Degrade explicitly** through a fallback that is semantically honest.
+
+The pattern is a state machine: **closed → open → half-open → closed**. It is only
+sound when paired with timeouts, bounded retries, idempotency keys, and
+observability. A breaker without a timeout never trips, because calls never
+"fail" — they hang.
+
+## Why you need it
+
+You need a breaker when a remote dependency can fail or stall:
+
+- A payment provider starts hanging for 20 seconds per call.
+- Request handlers and connection pools fill with waiting calls.
+- Unrelated endpoints degrade because the process is saturated.
+- Retries multiply traffic against an already-failing provider.
+- Health checks fail and the orchestrator restarts pods that were not the problem.
+- Nobody can tell whether the dependency is down or just slow.
+
+Without it, one sick dependency can take down the entire service, and recovery
+takes far longer than the dependency's own outage.
+
+## Benefits
+
+| Benefit | What it gives you |
+| --- | --- |
+| **Bounded latency** | Calls fail in microseconds instead of waiting for a timeout. |
+| **Resource protection** | Pools, sockets, memory, and the event loop stay available. |
+| **Recovery window** | The dependency gets relief instead of a retry flood. |
+| **Automatic probing** | Half-open calls test recovery without full traffic. |
+| **Graceful degradation** | A safe fallback can serve cached or pending results. |
+| **Fault isolation** | One breaker per dependency contains the blast radius. |
+| **Dependency visibility** | State transitions and rejection metrics expose health. |
+| **Retry-storm prevention** | Failures stop amplifying load. |
+
+The costs are tuning (thresholds, volume, reset window), false positives if
+business errors are counted as failures, fallback semantics, and per-process
+state that differs between pods. It also adds a moving part that must be tested
+in both directions: opening **and** recovering.
+
+## When this pattern applies
+
+Use it when a remote dependency can fail or become slow, when continued calls
+threaten your own health, when you can define a safe fallback, and when traffic is
+high enough for thresholds to be meaningful. Avoid it for local, reliable calls,
+for very low traffic where thresholds behave erratically, and when failing fast
+provides no benefit. Section 8 has the full decision list.
+
 ## 1. What problem does it solve?
 
 Your backend depends on an external payment API.
