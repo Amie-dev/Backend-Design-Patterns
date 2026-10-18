@@ -3,6 +3,9 @@
 **Category:** Business logic and extensibility
 **Stack used in examples:** TypeScript · Node.js · Express
 
+> 📚 **Deep dive:** [chapter-wise notes](notes/README.md) — five chapters that
+> expand every section below with code, tests, and production guidance.
+
 ---
 
 ## Theory — why this pattern exists

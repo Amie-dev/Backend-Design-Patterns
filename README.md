@@ -99,7 +99,7 @@ and the exact behaviour to observe:
 | 01 Repository | ✅ | 10 chapters | ✅ in-memory + Prisma |
 | 02 Factory | ✅ | 5 chapters | ✅ sandbox + Stripe + Razorpay |
 | 03 Singleton | ✅ | 5 chapters | ✅ pool + cache + shutdown |
-| 04 Strategy | ✅ | — | — |
+| 04 Strategy | ✅ | 5 chapters | — |
 | 05 Observer | ✅ | — | — |
 | 06 Builder | ✅ | — | — |
 | 07 Adapter | ✅ | — | — |
@@ -128,8 +128,9 @@ Long-form chapters that expand the reference with reasoning, copy-ready code,
 tests, failure modes, and production checklists. Each folder's `notes/README.md`
 is the index, with suggested reading paths. Currently available for
 [Repository](01-repository/notes/README.md) (10 chapters),
-[Factory](02-factory/notes/README.md) (5), and
-[Singleton](03-singleton/notes/README.md) (5).
+[Factory](02-factory/notes/README.md) (5),
+[Singleton](03-singleton/notes/README.md) (5), and
+[Strategy](04-strategy/notes/README.md) (5).
 
 ### 3. `code/` — runnable demos
 
@@ -204,7 +205,11 @@ enforce the import boundaries mechanically.
 │   ├── notes.md
 │   ├── notes/                    # 5 chapters
 │   └── code/                     # pool, cache, request scope, shutdown
-├── 04-strategy/ … 10-circuit-breaker/
+├── 04-strategy/
+│   ├── notes.md
+│   ├── notes/                    # 5 chapters
+│   └── code/                     # reserved for a demo
+├── 05-observer/ … 10-circuit-breaker/
 │   ├── notes.md                  # complete reference
 │   ├── notes/                    # reserved for chapters
 │   └── code/                     # reserved for demos
@@ -250,8 +255,9 @@ blueprint):
 
 ## Status and roadmap
 
-- **01–03** are complete: reference, chapters, and a tested demo.
-- **04–10** have complete `notes.md` references; chapter notes and runnable
+- **01–04** have a complete reference and chapter notes; **01–03** also ship a
+  tested demo.
+- **05–10** have complete `notes.md` references; chapter notes and runnable
   demos are the next additions.
 - **11** is a complete written blueprint; a starter `code/` scaffold is planned
   (Express + TypeScript, `FakeLlm` adapter, sample tests).
