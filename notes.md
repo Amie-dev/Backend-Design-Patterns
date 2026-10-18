@@ -1,10 +1,12 @@
-# 10 Backend Design Patterns — Practical Learning Notes
+# Backend Design Patterns — Practical Learning Notes
 
-Production-oriented guide · TypeScript · Node.js · NestJS · PostgreSQL · Distributed systems
+10 core patterns + 1 AI-ready reference architecture · TypeScript · Node.js · NestJS · PostgreSQL · Distributed systems
 
 Backend design patterns are reusable ways to solve recurring software design problems. They help you build applications that remain understandable, testable, extensible, and reliable as the codebase grows.
 
 The goal is not to use every pattern in every project. The goal is to understand which problem a pattern solves, when to use it, how to implement it, and what trade-offs it introduces.
+
+> 🚀 **Starting a new project?** Read the [AI-ready project blueprint](11-ai-ready-blueprint/notes.md) first — one composition of patterns 1–10, plus the AI subsystem (LLM port, guardrails, budgets, evals) every product now needs. The ten pattern folders remain the deep references.
 
 ## 1. The big picture
 
@@ -25,6 +27,8 @@ Scaling and resilience
 CQRS · Circuit Breaker
 
 Separate read/write workloads and prevent failing dependencies from overwhelming your application.
+
+**Putting it together:** the [AI-ready blueprint](11-ai-ready-blueprint/notes.md) composes all three groups into one deployable structure and adds the AI layer — model port, prompt versions, guardrails, budgets, evals, and provider failure isolation.
 
 ## 2. A common application we'll use
 
